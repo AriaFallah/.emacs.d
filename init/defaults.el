@@ -10,15 +10,19 @@
 
 ;; Make autosaves be saved to temp
 (setq backup-directory-alist
-  `((".*" . ,temporary-file-directory)))
+      `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
-  `((".*" ,temporary-file-directory t)))
+      `((".*" ,temporary-file-directory t)))
 
 ;; Use spaces when possible
 (setq-default indent-tabs-mode nil)
 
-;; make the left fringe 4 pixels wide and the right disappear
-(fringe-mode '(4 . 0))
+;; Make emacs font fira code
+(mac-auto-operator-composition-mode)
+(set-frame-font "Fira Code-12.5" nil)
+
+;; make the left fringe 16 pixels wide and the right disappear
+(fringe-mode '(16 . 0))
 
 ;; No cursor blinking, it's distracting
 (blink-cursor-mode 0)
@@ -35,12 +39,18 @@
 ;; Use Emacs terminfo, not system terminfo
 (setq system-uses-terminfo nil)
 
+;; Delete trailing whitespace on save
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;; activate auto pairing
+(add-hook 'after-init-hook 'electric-pair-mode)
+
 ;; remove the GUI emacs clutter
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (setq inhibit-startup-message t)
 
-; proper case statement offsets
+;; proper case statement offsets
 (c-set-offset 'case-label '+)
 
 ;; Command key mapping on mac
@@ -48,19 +58,17 @@
 (setq mac-right-command-modifier 'meta)
 
 ;; turn on line numbers
+(defvar linum-format)
 (global-linum-mode t)
-(setq linum-format (lambda (line) (propertize (format (let ((w (length (number-to-string (count-lines (point-min) (point-max)))))) (concat "%" (number-to-string w) "d ")) line) 'face 'linum)))
+(setq linum-format
+      (lambda (line)
+        (propertize
+         (format
+          (let ((w (length (number-to-string (count-lines (point-min) (point-max))))))
+            (concat "%" (number-to-string w) "d ")) line) 'face 'linum)))
 
 ;; disable lockfiles
 (setq create-lockfiles nil)
 
 ;; enable buffer erasing
 (put 'erase-buffer 'disabled nil)
-
-;; activate windmove
-(when (fboundp 'windmove-default-keybindings)
-  (windmove-default-keybindings)
-  (global-set-key (kbd "C-c <left>")  'windmove-left)
-  (global-set-key (kbd "C-c <right>") 'windmove-right)
-  (global-set-key (kbd "C-c <up>")    'windmove-up)
-  (global-set-key (kbd "C-c <down>")  'windmove-down))

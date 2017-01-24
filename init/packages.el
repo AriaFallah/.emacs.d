@@ -1,7 +1,3 @@
-;; Local Variables:
-;; byte-compile-warnings: (not free-vars)
-;; End:
-
 ;; activate MELPA
 (when (>= emacs-major-version 24)
   (require 'package)
@@ -15,76 +11,114 @@
 (when (memq window-system '(mac ns))
   (exec-path-from-shell-initialize))
 
-;; activate helm
-(require 'helm)
-(require 'helm-config)
-(global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-(global-set-key (kbd "C-x C-b") 'helm-buffers-list)
-(helm-projectile-on)
-(setq helm-M-x-fuzzy-match t)
-(helm-mode 1)
+;; nice menus
+(use-package helm
+  :defines helm-mode-fuzzy-match
+  :config
+  (progn
+    (use-package helm-config)
+    (setq helm-mode-fuzzy-match t)
+    (helm-mode 1))
+  :bind (("M-x" .     helm-M-x)
+         ("M-y" .     helm-show-kill-ring)
+         ("C-x f" .   helm-recentf)
+         ("C-x C-f" . helm-find-files)
+         ("C-x C-b" . helm-buffers-list)
+         ("C-c o"   . helm-occur)))
 
-;; activate projectile
-(projectile-global-mode)
-(setq projectile-mode-line "Projectile")
-(setq projectile-completion-system 'helm)
-(add-to-list 'projectile-globally-ignored-directories "node_modules")
+;; easy project traversal
+(use-package projectile
+  :config
+  (progn
+    (projectile-mode)
+    (setq projectile-mode-line "Projectile")
+    (add-to-list 'projectile-globally-ignored-directories "node_modules")
+    (use-package helm-projectile
+      :config
+      (progn
+        (helm-projectile-on)
+        (setq projectile-completion-system 'helm)))))
 
-;; activating golden ratio
-(require 'golden-ratio)
-(golden-ratio-mode 1)
-(setq golden-ratio-auto-scale t)
+;; git porcelain
+(use-package magit
+  :bind ("C-x g" . magit-status))
 
-;; always have company mode on
-(add-hook 'after-init-hook 'global-company-mode)
+;; proper pane sizing
+(use-package golden-ratio
+  :config (setq golden-ratio-auto-scale t))
 
-;; activate auto pairing
-(add-hook 'after-init-hook 'electric-pair-mode)
-
-;; activate ace jump mode
-(require 'ace-jump-mode)
-(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
+;; easy code navigation
+(use-package ace-jump-mode
+  :bind ("C-c SPC" . ace-jump-mode))
 
 ;; view recently opened files
-(require 'recentf)
-(recentf-mode 1)
-(setq recentf-max-menu-items 5)
-(global-set-key (kbd "C-x f") 'helm-recentf)
+(use-package recentf
+  :config
+  (progn
+    (recentf-mode 1)
+    (setq recentf-max-menu-items 5)))
 
-;; activate multiple cursors
-(require 'multiple-cursors)
-(global-set-key (kbd "M-3") 'mc/mark-next-like-this)
-(global-set-key (kbd "M-4") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c M-3") 'mc/mark-all-like-this)
+;; multiple cursors
+(use-package multiple-cursors
+  :bind (("M-3" . mc/mark-next-like-this)
+         ("M-4" . mc/mark-previous-like-this)
+         ("C-c M-3" . mc/mark-all-like-this)))
 
-;; activate expand-region
-(require 'expand-region)
-(global-set-key (kbd "M-2") 'er/expand-region)
+;; easier marking
+(use-package expand-region
+  :bind ("M-2" . er/expand-region))
 
-;; Enable paredit for Clojure
-(add-hook 'clojure-mode-hook 'enable-paredit-mode)
+;; autocomplete system
+(use-package company
+  :config
+  (progn
+    (setq
+     company-idle-delay 0.150
+     company-minimum-prefix-length 2
+     )
+    (add-hook 'after-init-hook 'global-company-mode)
+    (add-to-list 'company-backends '(company-irony-c-headers company-irony))))
 
-;; activating flycheck
-(add-hook 'after-init-hook 'global-flycheck-mode)
-(with-eval-after-load 'flycheck
-  (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+;; tag system
+(use-package rtags
+  :config
+  (progn
+    (setq rtags-autostart-diagnostics t)
+    (rtags-enable-standard-keybindings)
+    (use-package rtags-helm
+      :config (setq rtags-use-helm t))))
 
-;; make flycheck do c++11
-(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
-(add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
+;; C++ completion engine
+(defvar irony-mode-map)
+(use-package irony
+  :init
+  (defun my-irony-mode-hook ()
+    (define-key irony-mode-map [remap completion-at-point]
+      'irony-completion-at-point-async)
+    (define-key irony-mode-map [remap complete-symbol]
+      'irony-completion-at-point-async))
+  :config
+  (progn
+    (add-hook 'c-mode-hook 'irony-mode)
+    (add-hook 'c++-mode-hook 'irony-mode)
+    (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+    (use-package company-irony)
+    (use-package company-irony-c-headers)))
 
-;; magit stuff
-(global-set-key (kbd "C-x g") 'magit-status)
+;; linting
+(use-package flycheck
+  :config
+  (progn
+    (add-hook 'after-init-hook 'global-flycheck-mode)
+    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+    (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++14")))))
 
-;; irony-mode
-(require 'company-irony-c-headers)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'c++-mode-hook 'irony-mode)
+;; C++ ide features
+(use-package cmake-ide
+  :config (cmake-ide-setup))
 
-;; Load with `irony-mode` as a grouped backend
-(eval-after-load 'company
-  '(add-to-list
-    'company-backends '(company-irony-c-headers company-irony)))
-
+;; cool mode line
+(require 'spaceline-config)
+(spaceline-emacs-theme)
+(spaceline-helm-mode)

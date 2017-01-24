@@ -16,16 +16,17 @@
 	  (message "File '%s' successfully renamed to '%s'"
 		   name (file-name-nondirectory new-name)))))))
 
-
-(defun eshell-clear-buffer ()
-  "Clear terminal"
-  (interactive)
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (eshell-send-input)))
-
-(add-hook 'eshell-mode-hook
-          '(lambda()
-             (local-set-key (kbd "C-l") 'eshell-clear-buffer)))
-(global-set-key (kbd "C-x C-r") 'rename-current-buffer-file)
+;; make c++11 lambda not look dumb
+(defadvice c-lineup-arglist (around my activate)
+  "Improve indentation of continued C++11 lambda function opened as argument."
+  (setq ad-return-value
+        (if (and (equal major-mode 'c++-mode)
+                 (ignore-errors
+                   (save-excursion
+                     (goto-char (c-langelem-pos langelem))
+                     ;; Detect "[...](" or "[...]{". preceded by "," or "(",
+                     ;;   and with unclosed brace.
+                     (looking-at ".*[(,][ \t]*\\[[^]]*\\][ \t]*[({][^}]*$"))))
+            0                           ; no additional indent
+          ad-do-it)))                   ; default behavior
 
