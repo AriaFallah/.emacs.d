@@ -1,4 +1,12 @@
 (package-initialize)
+(setq package-enable-at-startup nil)
+(require 'use-package)
+
+(add-to-list 'load-path "~/.emacs.d/init")
+(load "~/.emacs.d/init/defuns.el")
+(load "~/.emacs.d/init/defaults.el")
+(load "~/.emacs.d/init/packages.el")
+(load "~/.emacs.d/init/keys.el")
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -16,10 +24,10 @@
      (arglist-close c-lineup-close-paren)
      (template-args-cont . +))))
  '(cursor-type (quote box))
- '(custom-enabled-themes (quote (gruvbox)))
+ '(custom-enabled-themes (quote (challenger-deep)))
  '(custom-safe-themes
    (quote
-    ("10e231624707d46f7b2059cc9280c332f7c7a530ebc17dba7e506df34c5332c4" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "9b402e9e8f62024b2e7f516465b63a4927028a7055392290600b776e4a5b9905" "628278136f88aa1a151bb2d6c8a86bf2b7631fbea5f0f76cba2a0079cd910f7d" default)))
+    ("e2a06cbad59e7a19c40c689b4bcb84344fe6a375e7c237ad991ef1aa587e9caa" "2d32455b3acc27bef4dc912f74c14a371cf7167a075bbd4f90ac14e761359e5b" "10e231624707d46f7b2059cc9280c332f7c7a530ebc17dba7e506df34c5332c4" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "9b402e9e8f62024b2e7f516465b63a4927028a7055392290600b776e4a5b9905" "628278136f88aa1a151bb2d6c8a86bf2b7631fbea5f0f76cba2a0079cd910f7d" default)))
  '(fci-rule-color "#515151")
  '(flycheck-gcc-language-standard nil)
  '(golden-ratio-adjust-factor 0.8)
@@ -27,7 +35,7 @@
  '(mc/always-run-for-all t)
  '(package-selected-packages
    (quote
-    (company-irony company-irony-c-headers company-jedi web-mode spaceline gruvbox-theme use-package yaml-mode cmake-mode cmake-ide rtags company-lua lua-mode irony markdown-mode rainbow-delimiters paredit multiple-cursors magit helm-projectile haskell-mode golden-ratio flycheck expand-region exec-path-from-shell company ace-jump-mode)))
+    (toml-mode flycheck-rust racer rust-mode challenger-deep-theme company-go go-mode company-irony company-irony-c-headers company-jedi web-mode spaceline gruvbox-theme use-package yaml-mode cmake-mode company-lua lua-mode markdown-mode rainbow-delimiters paredit multiple-cursors magit helm-projectile haskell-mode golden-ratio flycheck expand-region exec-path-from-shell company ace-jump-mode)))
  '(vc-annotate-background nil)
  '(vc-annotate-color-map
    (quote
@@ -57,8 +65,4 @@
  ;; If there is more than one, they won't work right.
  )
 
-(add-to-list 'load-path "~/.emacs.d/init")
-(load "~/.emacs.d/init/defuns.el")
-(load "~/.emacs.d/init/defaults.el")
-(load "~/.emacs.d/init/packages.el")
-(load "~/.emacs.d/init/keys.el")
+(put 'downcase-region 'disabled nil)

@@ -14,7 +14,8 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
-;; Use spaces when possible
+;; Use spaces when possible and tabs should look like 2 spaces
+(setq-default tab-width 2)
 (setq-default indent-tabs-mode nil)
 
 ;; Make emacs font fira code

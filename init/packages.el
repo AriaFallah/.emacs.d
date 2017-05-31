@@ -9,7 +9,8 @@
 
 ;; put $PATH into shell on mac
 (when (memq window-system '(mac ns))
-  (exec-path-from-shell-initialize))
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "GOPATH"))
 
 ;; nice menus
 (use-package helm
@@ -19,11 +20,11 @@
     (use-package helm-config)
     (setq helm-mode-fuzzy-match t)
     (helm-mode 1))
-  :bind (("M-x" .     helm-M-x)
-         ("M-y" .     helm-show-kill-ring)
-         ("C-x f" .   helm-recentf)
+  :bind (("M-x"     . helm-M-x)
+         ("M-y"     . helm-show-kill-ring)
+         ("C-x f"   . helm-recentf)
          ("C-x C-f" . helm-find-files)
-         ("C-x C-b" . helm-buffers-list)
+         ("C-x b"   . helm-buffers-list)
          ("C-c o"   . helm-occur)))
 
 ;; easy project traversal
@@ -37,7 +38,8 @@
       :config
       (progn
         (helm-projectile-on)
-        (setq projectile-completion-system 'helm)))))
+        (setq projectile-completion-system 'helm))
+      :bind (("C-x C-b" . projectile-switch-to-buffer)))))
 
 ;; git porcelain
 (use-package magit
@@ -72,21 +74,10 @@
 (use-package company
   :config
   (progn
-    (setq
-     company-idle-delay 0.150
-     company-minimum-prefix-length 2
-     )
+    (setq company-idle-delay 0.175
+          company-minimum-prefix-length 3)
     (add-hook 'after-init-hook 'global-company-mode)
-    (add-to-list 'company-backends '(company-irony-c-headers company-irony))))
-
-;; tag system
-(use-package rtags
-  :config
-  (progn
-    (setq rtags-autostart-diagnostics t)
-    (rtags-enable-standard-keybindings)
-    (use-package rtags-helm
-      :config (setq rtags-use-helm t))))
+    (add-to-list 'company-backends '(company-irony-c-headers company-irony company-go))))
 
 ;; C++ completion engine
 (defvar irony-mode-map)
@@ -102,9 +93,7 @@
     (add-hook 'c-mode-hook 'irony-mode)
     (add-hook 'c++-mode-hook 'irony-mode)
     (add-hook 'irony-mode-hook 'my-irony-mode-hook)
-    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-    (use-package company-irony)
-    (use-package company-irony-c-headers)))
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)))
 
 ;; linting
 (use-package flycheck
@@ -114,9 +103,22 @@
     (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
     (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++14")))))
 
-;; C++ ide features
-(use-package cmake-ide
-  :config (cmake-ide-setup))
+(use-package web-mode
+  :mode (("\\.html\\'" . web-mode)
+         ("\\.gohtml\\'" . web-mode)
+         ("\\.js\\'" . web-mode)
+         ("\\.hbs\\'" . web-mode)
+         ("\\.s?css\\'" . web-mode))
+  :config
+  (progn
+    (setq
+     web-mode-markup-indent-offset 2
+     web-mode-css-indent-offset 2
+     web-mode-code-indent-offset 2
+     web-mode-enable-auto-pairing t
+     web-mode-enable-css-colorization t
+     web-mode-enable-current-element-highlight t)
+    (add-hook 'after-save-hook font-lock-fontify-buffer-function nil 'local)))
 
 ;; cool mode line
 (require 'spaceline-config)
